@@ -8,8 +8,10 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'almacen-repuestos-seguro-key-2026'
     
-    _raw_db_url = os.environ.get('DATABASE_URL')
+    # Busca en DATABASE_URL o nombres alternativos comunes
+    _raw_db_url = os.environ.get('DATABASE_URL') or os.environ.get('DATABASE_URI') or os.environ.get('SUPABASE_DATABASE_URL')
     if _raw_db_url:
+        _raw_db_url = _raw_db_url.strip().strip("'").strip('"')
         # Corrige el esquema postgres:// a postgresql://
         if _raw_db_url.startswith('postgres://'):
             _raw_db_url = _raw_db_url.replace('postgres://', 'postgresql://', 1)
