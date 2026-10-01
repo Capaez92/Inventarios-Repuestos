@@ -5,10 +5,9 @@ from app.models.models import (
 )
 from app.utils.kardex import register_movement
 
-app = create_app()
-
-def run_seed():
-    with app.app_context():
+def run_seed(target_app=None):
+    app_to_use = target_app if target_app is not None else create_app()
+    with app_to_use.app_context():
         # Clean and create tables
         db.create_all()
 

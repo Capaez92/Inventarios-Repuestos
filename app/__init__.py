@@ -69,5 +69,11 @@ def create_app(config_class=Config):
 
     with app.app_context():
         db.create_all()
+        try:
+            if not User.query.filter_by(username='admin').first():
+                from seed import run_seed
+                run_seed(app)
+        except Exception:
+            pass
 
     return app
