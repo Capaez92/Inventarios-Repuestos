@@ -59,10 +59,23 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Inicializar base de datos con datos de prueba (Opcional)
-```bash
-python seed.py
-```
+### 4. Configurar Base de Datos (SQLite o Supabase)
+Por defecto, la aplicación utiliza SQLite local. Para conectar con **Supabase (PostgreSQL en la nube)**:
+
+1. Crea un proyecto en [Supabase](https://supabase.com).
+2. Ve a **Project Settings -> Database -> Connection String -> URI** (selecciona el modo *Transaction* o *Session*).
+3. Crea un archivo `.env` en la raíz del proyecto (puedes basarte en `.env.example`):
+   ```env
+   DATABASE_URL=postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres
+   ```
+4. (Opcional) Si deseas migrar los datos locales que tienes en SQLite hacia Supabase, ejecuta:
+   ```bash
+   python migrate_to_supabase.py
+   ```
+   O para iniciar una base de datos limpia con datos de muestra:
+   ```bash
+   python seed.py
+   ```
 
 ### 5. Iniciar la aplicación
 En Windows, puedes ejecutar directamente:

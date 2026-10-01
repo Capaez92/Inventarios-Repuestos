@@ -100,6 +100,11 @@ def audit():
 @login_required
 @admin_required
 def download_backup():
+    db_uri = current_app.config.get('SQLALCHEMY_DATABASE_URI', '')
+    if 'postgresql' in db_uri:
+        flash('El sistema está conectado a Supabase (PostgreSQL en la nube). Los respaldos se gestionan y descargan automáticamente desde el panel de Supabase (Database -> Backups).', 'info')
+        return redirect(url_for('settings.index'))
+
     db_path = os.path.join(current_app.root_path, '..', 'instance', 'inventarios.db')
     db_path = os.path.abspath(db_path)
     if not os.path.exists(db_path):
