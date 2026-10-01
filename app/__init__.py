@@ -52,11 +52,15 @@ def create_app(config_class=Config):
         low_count = 0
         try:
             low_count = Product.query.filter(Product.current_stock <= Product.min_stock).count()
-        except:
+        except Exception:
             pass
+        db_uri = app.config.get('SQLALCHEMY_DATABASE_URI', '')
+        is_supabase = 'postgresql' in db_uri
         return {
             'company': company,
-            'low_stock_badge_count': low_count
+            'low_stock_badge_count': low_count,
+            'is_supabase': is_supabase,
+            'db_name_display': 'Supabase PostgreSQL' if is_supabase else 'SQLite Local'
         }
 
     # Template filters

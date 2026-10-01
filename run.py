@@ -3,6 +3,9 @@ from app import create_app
 
 app = create_app()
 
+db_target = "SUPABASE (PostgreSQL en la Nube)" if 'postgresql' in app.config.get('SQLALCHEMY_DATABASE_URI', '') else "SQLite Local (instance/inventarios.db)"
+print(f"[*] Base de datos activa: {db_target}")
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8090))
     print(f"\n=======================================================")
