@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Usuarios y Roles{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0 text-slate-800">Control de Usuarios y Roles</h4>
+        <p class="text-muted small mb-0">Gestión de accesos, permisos y estados de cuentas</p>
+    </div>
+    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newUserModal">
+        <i class="bi bi-person-plus me-1"></i> Crear Usuario
+    </button>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive p-3">
+            <table class="table table-hover align-middle datatable w-100">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Nombre Completo</th>
+                        <th>Correo</th>
+                        <th>Rol</th>
+                        <th class="text-center">Estado</th>
+                        <th>Fecha Creación</th>
+                        <th class="text-end">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td class="fw-bold text-primary">{{ u.username }}</td>
+                        <td class="fw-semibold text-dark">{{ u.full_name }}</td>
+                        <td>{{ u.email or '-' }}</td>
+                        <td>
+                            {% if u.role == 'admin' %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Administrador</span>
+                            {% elif u.role == 'almacenista' %}
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Almacenista</span>
+                            {% else %}
+                                <span class="badge bg-secondary-subtle text-secondary border">Consultor</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if u.active %}
+                                <span class="badge badge-soft-success">Activo</span>
+                            {% else %}
+                                <span class="badge badge-soft-danger">Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td class="small text-muted">{{ u.created_at.strftime('%d/%m/%Y') }}</td>
+                        <td class="text-end">
+                            {% if u.id != current_user.id %}
+                            <form action="{{ url_for('settings.toggle_user', user_id=u.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm {% if u.active %}btn-outline-danger{% else %}btn-outline-success{% endif %} py-0 px-2" style="font-size:12px;">
+                                    {{ 'Desactivar' if u.active else 'Activar' }}
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="badge bg-light text-muted border">Sesión actual</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Crear Usuario -->
+<div class="modal fade" id="newUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold"><i class="bi bi-person-plus me-2 text-primary"></i>Nuevo Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('settings.create_user') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre de Usuario <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="username" required placeholder="Ej: jgomez">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nombre Completo <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="full_name" required placeholder="Ej: Juan Gómez">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Correo Electrónico</label>
+                        <input type="email" class="form-control" name="email" placeholder="juan@almacen.com">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Rol del Sistema <span class="text-danger">*</span></label>
+                        <select class="form-select" name="role" required>
+                            <option value="almacenista">Almacenista (Gestión y Movimientos)</option>
+                            <option value="consultor">Consultor (Solo Lectura)</option>
+                            <option value="admin">Administrador (Control Total)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Contraseña Inicial <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" name="password" required placeholder="Mínimo 6 caracteres">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-soft" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Registrar Usuario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

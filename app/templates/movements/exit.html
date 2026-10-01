@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Despacho de Salida de Repuestos{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h4 class="fw-bold mb-0 text-slate-800">Despacho / Salida de Inventario</h4>
+                <p class="text-muted small mb-0">Registre salidas por venta directa, taller u orden de servicio</p>
+            </div>
+            <a href="{{ url_for('movements.index') }}" class="btn btn-soft btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Ver Kárdex
+            </a>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="product_id" class="form-label">Seleccione el Repuesto a Despachar <span class="text-danger">*</span></label>
+                        <select class="form-select form-select-lg" id="product_id" name="product_id" required>
+                            <option value="">Buscar repuesto...</option>
+                            {% for p in products %}
+                            <option value="{{ p.id }}" data-stock="{{ p.current_stock }}" data-unit="{{ p.unit_measure }}">
+                                [{{ p.sku }}] {{ p.name }} — Disponible: {{ p.current_stock }} {{ p.unit_measure }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="exit_type" class="form-label">Tipo de Salida <span class="text-danger">*</span></label>
+                            <select class="form-select" id="exit_type" name="exit_type" required>
+                                <option value="salida_venta">Venta a Cliente Directo</option>
+                                <option value="salida_taller">Despacho a Taller / Mantenimiento</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="quantity" class="form-label">Cantidad a Despachar <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="quantity" name="quantity" min="1" required placeholder="1">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="reference_doc" class="form-label">Documento de Referencia</label>
+                        <input type="text" class="form-control" id="reference_doc" name="reference_doc" placeholder="Ej: Factura #1042 o Remisión / OT-98">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="notes" class="form-label">Observaciones / Destino</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="2" placeholder="Nombre de cliente, técnico responsable, etc."></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <a href="{{ url_for('movements.index') }}" class="btn btn-soft">Cancelar</a>
+                        <button type="submit" class="btn btn-danger px-4">
+                            <i class="bi bi-box-arrow-up-right me-1"></i> Confirmar y Despachar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

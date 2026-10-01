@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva Orden de Compra{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-11">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h4 class="fw-bold mb-0 text-slate-800">Generar Orden de Compra</h4>
+                <p class="text-muted small mb-0">Seleccione el proveedor y agregue los repuestos a abastecer</p>
+            </div>
+            <a href="{{ url_for('purchases.index') }}" class="btn btn-soft btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Volver a Órdenes
+            </a>
+        </div>
+
+        <form method="POST">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h6 class="fw-semibold text-primary mb-3"><i class="bi bi-truck me-2"></i>Datos de Proveedor</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="supplier_id" class="form-label">Proveedor <span class="text-danger">*</span></label>
+                            <select class="form-select" id="supplier_id" name="supplier_id" required>
+                                <option value="">Seleccione Proveedor...</option>
+                                {% for s in suppliers %}
+                                <option value="{{ s.id }}">{{ s.name }} (NIT: {{ s.nit_ruc }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="notes" class="form-label">Observaciones / Condiciones de Entrega</label>
+                            <input type="text" class="form-control" id="notes" name="notes" placeholder="Plazo de pago, dirección de despacho, etc.">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items de la Compra -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-semibold"><i class="bi bi-list-check me-2 text-primary"></i>Repuestos a Pedir</h6>
+                    <button type="button" class="btn btn-sm btn-soft" id="add-row-btn">
+                        <i class="bi bi-plus-lg me-1"></i> Agregar Fila
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0" id="items-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 45%;">Repuesto / Referencia</th>
+                                    <th style="width: 15%;" class="text-center">Cantidad</th>
+                                    <th style="width: 20%;" class="text-end">Costo Unitario ($)</th>
+                                    <th style="width: 15%;" class="text-end">Subtotal ($)</th>
+                                    <th style="width: 5%;" class="text-center"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="items-body">
+                                <tr>
+                                    <td>
+                                        <select class="form-select product-select" name="product_id[]" required onchange="updateProductCost(this)">
+                                            <option value="">Seleccionar repuesto...</option>
+                                            {% for p in products %}
+                                            <option value="{{ p.id }}" data-cost="{{ p.cost_price }}">{{ p.sku }} - {{ p.name }} (Stock: {{ p.current_stock }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control text-center qty-input" name="quantity[]" min="1" value="1" required oninput="calculateRow(this)">
+                                    </td>
+                                    <td>
+                                        <input type="number" step="0.01" class="form-control text-end cost-input" name="unit_cost[]" value="0.00" min="0" required oninput="calculateRow(this)">
+                                    </td>
+                                    <td class="text-end fw-semibold row-subtotal">$0.00</td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm text-danger" onclick="removeRow(this)"><i class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <td colspan="3" class="text-end fw-bold">TOTAL ESTIMADO ORDEN:</td>
+                                    <td class="text-end fw-bold fs-5 text-primary" id="grand-total">$0.00</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{{ url_for('purchases.index') }}" class="btn btn-soft px-4">Cancelar</a>
+                <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                    <i class="bi bi-save me-1"></i> Guardar Orden de Compra
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function updateProductCost(selectElem) {
+        const option = selectElem.options[selectElem.selectedIndex];
+        const cost = option.getAttribute('data-cost') || '0.00';
+        const row = selectElem.closest('tr');
+        const costInput = row.querySelector('.cost-input');
+        costInput.value = parseFloat(cost).toFixed(2);
+        calculateRow(selectElem);
+    }
+
+    function calculateRow(elem) {
+        const row = elem.closest('tr');
+        const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+        const cost = parseFloat(row.querySelector('.cost-input').value) || 0;
+        const subtotal = qty * cost;
+        row.querySelector('.row-subtotal').innerText = '$' + subtotal.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        calculateTotal();
+    }
+
+    function calculateTotal() {
+        let total = 0;
+        document.querySelectorAll('#items-body tr').forEach(row => {
+            const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
+            const cost = parseFloat(row.querySelector('.cost-input').value) || 0;
+            total += qty * cost;
+        });
+        document.getElementById('grand-total').innerText = '$' + total.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+
+    function removeRow(btn) {
+        const rows = document.querySelectorAll('#items-body tr');
+        if (rows.length > 1) {
+            btn.closest('tr').remove();
+            calculateTotal();
+        } else {
+            alert('Debe mantener al menos una fila.');
+        }
+    }
+
+    document.getElementById('add-row-btn').addEventListener('click', function() {
+        const firstRow = document.querySelector('#items-body tr');
+        const clone = firstRow.cloneNode(true);
+        clone.querySelector('.product-select').selectedIndex = 0;
+        clone.querySelector('.qty-input').value = 1;
+        clone.querySelector('.cost-input').value = '0.00';
+        clone.querySelector('.row-subtotal').innerText = '$0.00';
+        document.getElementById('items-body').appendChild(clone);
+    });
+</script>
+{% endblock %}

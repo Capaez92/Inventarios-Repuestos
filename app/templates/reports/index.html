@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Centro de Reportes{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0 text-slate-800">Centro de Informes y Exportaciones</h4>
+        <p class="text-muted small mb-0">Descarga de reportes valorizados, kárdex por referencia y auditoría</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Reporte 1: Inventario Valorizado -->
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 p-4 shadow-sm border-0">
+            <div class="d-flex align-items-center mb-3">
+                <div class="kpi-icon-box bg-success-subtle text-success me-3">
+                    <i class="bi bi-file-earmark-spreadsheet fs-3"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-0 text-dark">Inventario Valorizado Total</h6>
+                    <small class="text-muted">Hoja de cálculo en Excel</small>
+                </div>
+            </div>
+            <p class="small text-secondary flex-grow-1">
+                Descarga el listado completo de todos los repuestos con stock físico, stock mínimo, costo promedio ponderado y valorización total en moneda local.
+            </p>
+            <a href="{{ url_for('reports.inventory_excel') }}" class="btn btn-outline-success w-100">
+                <i class="bi bi-download me-1"></i> Descargar Excel (.xlsx)
+            </a>
+        </div>
+    </div>
+
+    <!-- Reporte 2: Inventario PDF -->
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 p-4 shadow-sm border-0">
+            <div class="d-flex align-items-center mb-3">
+                <div class="kpi-icon-box bg-danger-subtle text-danger me-3">
+                    <i class="bi bi-file-earmark-pdf fs-3"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-0 text-dark">Inventario en PDF (Impresión)</h6>
+                    <small class="text-muted">Documento formal imprimible</small>
+                </div>
+            </div>
+            <p class="small text-secondary flex-grow-1">
+                Genera el documento en PDF con membrete de la empresa, listo para firmar inventarios físicos, tomas de almacén o auditoría contable.
+            </p>
+            <a href="{{ url_for('reports.inventory_pdf') }}" target="_blank" class="btn btn-outline-danger w-100">
+                <i class="bi bi-file-earmark-pdf me-1"></i> Ver / Imprimir PDF
+            </a>
+        </div>
+    </div>
+
+    <!-- Reporte 3: Kárdex por Artículo -->
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 p-4 shadow-sm border-0">
+            <div class="d-flex align-items-center mb-3">
+                <div class="kpi-icon-box bg-primary-subtle text-primary me-3">
+                    <i class="bi bi-journal-check fs-3"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-0 text-dark">Kárdex Individual en Excel</h6>
+                    <small class="text-muted">Historial de entradas y salidas</small>
+                </div>
+            </div>
+            <p class="small text-secondary mb-2">
+                Seleccione el repuesto para obtener la sábana completa de movimientos cronológicos y saldos.
+            </p>
+            <div class="mt-auto">
+                <select class="form-select form-select-sm mb-2" id="kardex-product-select">
+                    {% for p in products %}
+                    <option value="{{ p.id }}">{{ p.sku }} - {{ p.name[:25] }}</option>
+                    {% endfor %}
+                </select>
+                <button type="button" class="btn btn-outline-primary w-100" onclick="downloadSelectedKardex()">
+                    <i class="bi bi-download me-1"></i> Descargar Kárdex
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function downloadSelectedKardex() {
+        const prodId = document.getElementById('kardex-product-select').value;
+        if (prodId) {
+            window.location.href = `/reports/kardex/${prodId}/excel`;
+        }
+    }
+</script>
+{% endblock %}

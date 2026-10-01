@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar Repuesto' if product else 'Nuevo Repuesto' }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h4 class="fw-bold mb-0 text-slate-800">{{ 'Editar Repuesto' if product else 'Registrar Nuevo Repuesto' }}</h4>
+                <p class="text-muted small mb-0">Complete la ficha técnica y parámetros de inventario</p>
+            </div>
+            <a href="{{ url_for('products.index') }}" class="btn btn-soft btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Volver al Catálogo
+            </a>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <form method="POST" enctype="multipart/form-data">
+                    <h6 class="fw-semibold text-primary mb-3"><i class="bi bi-tag me-2"></i>Identificación del Repuesto</h6>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="sku" class="form-label">Código / SKU <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control text-uppercase" id="sku" name="sku" value="{{ product.sku if product else '' }}" {{ 'readonly' if product else 'required' }} placeholder="Ej: BRK-PAD-001">
+                            <small class="text-muted">Código único interno.</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="barcode" class="form-label">Código de Barras</label>
+                            <input type="text" class="form-control" id="barcode" name="barcode" value="{{ product.barcode if product and product.barcode else '' }}" placeholder="Escanee o digite EAN/UPC">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="oem_reference" class="form-label">Referencia OEM / Original</label>
+                            <input type="text" class="form-control" id="oem_reference" name="oem_reference" value="{{ product.oem_reference if product and product.oem_reference else '' }}" placeholder="Ej: 04465-02220">
+                        </div>
+
+                        <div class="col-md-8">
+                            <label for="name" class="form-label">Nombre / Descripción del Repuesto <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ product.name if product else '' }}" required placeholder="Ej: Pastillas de Freno Delanteras Cerámica">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="unit_measure" class="form-label">Unidad de Medida <span class="text-danger">*</span></label>
+                            <select class="form-select" id="unit_measure" name="unit_measure" required>
+                                <option value="UN" {% if product and product.unit_measure == 'UN' %}selected{% endif %}>Unidad (UN)</option>
+                                <option value="JGO" {% if product and product.unit_measure == 'JGO' %}selected{% endif %}>Juego / Set (JGO)</option>
+                                <option value="KIT" {% if product and product.unit_measure == 'KIT' %}selected{% endif %}>Kit Completo (KIT)</option>
+                                <option value="PAR" {% if product and product.unit_measure == 'PAR' %}selected{% endif %}>Par (PAR)</option>
+                                <option value="LT" {% if product and product.unit_measure == 'LT' %}selected{% endif %}>Litro (LT)</option>
+                                <option value="MT" {% if product and product.unit_measure == 'MT' %}selected{% endif %}>Metro (MT)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-semibold text-primary mb-3"><i class="bi bi-diagram-3 me-2"></i>Clasificación & Ubicación</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label for="category_id" class="form-label">Categoría <span class="text-danger">*</span></label>
+                            <select class="form-select" id="category_id" name="category_id" required>
+                                <option value="">Seleccione Categoría...</option>
+                                {% for c in categories %}
+                                <option value="{{ c.id }}" {% if product and product.category_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="brand_id" class="form-label">Marca / Fabricante</label>
+                            <select class="form-select" id="brand_id" name="brand_id">
+                                <option value="">Sin marca específica</option>
+                                {% for b in brands %}
+                                <option value="{{ b.id }}" {% if product and product.brand_id == b.id %}selected{% endif %}>{{ b.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="location_id" class="form-label">Ubicación Física en Almacén</label>
+                            <select class="form-select" id="location_id" name="location_id">
+                                <option value="">Sin ubicación asignada</option>
+                                {% for l in locations %}
+                                <option value="{{ l.id }}" {% if product and product.location_id == l.id %}selected{% endif %}>{{ l.full_location }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-semibold text-primary mb-3"><i class="bi bi-sliders2 me-2"></i>Control de Stock & Precios</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <label for="min_stock" class="form-label">Stock Mínimo (Alerta)</label>
+                            <input type="number" class="form-control" id="min_stock" name="min_stock" value="{{ product.min_stock if product else '5' }}" min="0">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="max_stock" class="form-label">Stock Máximo</label>
+                            <input type="number" class="form-control" id="max_stock" name="max_stock" value="{{ product.max_stock if product else '100' }}" min="1">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="cost_price" class="form-label">Costo Unitario Inicial ($)</label>
+                            <input type="number" step="0.01" class="form-control" id="cost_price" name="cost_price" value="{{ product.cost_price if product else '0.00' }}" {{ 'readonly' if product else '' }}>
+                            {% if product %}<small class="text-muted">Se recalcula con compras.</small>{% endif %}
+                        </div>
+                        <div class="col-md-3">
+                            <label for="sale_price" class="form-label">Precio de Venta ($)</label>
+                            <input type="number" step="0.01" class="form-control" id="sale_price" name="sale_price" value="{{ product.sale_price if product else '0.00' }}">
+                        </div>
+
+                        {% if not product %}
+                        <div class="col-md-4">
+                            <label for="initial_stock" class="form-label">Inventario Inicial Físico</label>
+                            <input type="number" class="form-control" id="initial_stock" name="initial_stock" value="0" min="0">
+                            <small class="text-muted">Creará automáticamente movimiento inicial.</small>
+                        </div>
+                        {% endif %}
+
+                        <div class="col-md-{{ '8' if not product else '12' }}">
+                            <label for="description" class="form-label">Aplicaciones / Notas Técnicas</label>
+                            <textarea class="form-control" id="description" name="description" rows="2" placeholder="Modelos compatibles, especificaciones, etc.">{{ product.description if product and product.description else '' }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <a href="{{ url_for('products.index') }}" class="btn btn-soft px-3">Cancelar</a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-save me-1"></i> {{ 'Guardar Cambios' if product else 'Registrar Repuesto' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

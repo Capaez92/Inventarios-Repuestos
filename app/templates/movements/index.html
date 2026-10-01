@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Kárdex General de Movimientos{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h4 class="fw-bold mb-0 text-slate-800">Historial Kárdex</h4>
+        <p class="text-muted small mb-0">Trazabilidad de entradas, salidas y ajustes de inventario</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('movements.stock_exit') }}" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-box-arrow-up-right me-1"></i> Despachar Salida
+        </a>
+        <a href="{{ url_for('movements.stock_adjust') }}" class="btn btn-soft btn-sm">
+            <i class="bi bi-sliders me-1"></i> Registrar Ajuste
+        </a>
+    </div>
+</div>
+
+<!-- Filtros Rápidos -->
+<div class="card mb-3 p-3">
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+        <span class="small fw-semibold text-muted me-2"><i class="bi bi-funnel me-1"></i>Tipo:</span>
+        <a href="{{ url_for('movements.index') }}" class="btn btn-sm {% if not current_type %}btn-primary{% else %}btn-soft{% endif %}">Todos</a>
+        <a href="{{ url_for('movements.index', type='entrada_compra') }}" class="btn btn-sm {% if current_type == 'entrada_compra' %}btn-success{% else %}btn-soft{% endif %}">Compras</a>
+        <a href="{{ url_for('movements.index', type='salida_venta') }}" class="btn btn-sm {% if current_type == 'salida_venta' %}btn-danger{% else %}btn-soft{% endif %}">Ventas</a>
+        <a href="{{ url_for('movements.index', type='salida_taller') }}" class="btn btn-sm {% if current_type == 'salida_taller' %}btn-warning text-dark{% else %}btn-soft{% endif %}">Salidas Taller</a>
+        <a href="{{ url_for('movements.index', type='ajuste_positivo') }}" class="btn btn-sm {% if current_type == 'ajuste_positivo' %}btn-info{% else %}btn-soft{% endif %}">Ajustes (+)</a>
+        <a href="{{ url_for('movements.index', type='ajuste_negativo') }}" class="btn btn-sm {% if current_type == 'ajuste_negativo' %}btn-dark{% else %}btn-soft{% endif %}">Ajustes (-)</a>
+    </div>
+</div>
+
+<!-- Tabla Kárdex -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive p-3">
+            <table class="table table-hover align-middle datatable w-100">
+                <thead>
+                    <tr>
+                        <th>Fecha / Hora</th>
+                        <th>Tipo</th>
+                        <th>Repuesto / SKU</th>
+                        <th>Documento / Ref</th>
+                        <th class="text-center">Cantidad</th>
+                        <th class="text-center">Stock Previo</th>
+                        <th class="text-center">Nuevo Stock</th>
+                        <th class="text-end">Costo Mov.</th>
+                        <th>Usuario</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in movements %}
+                    <tr>
+                        <td class="small text-muted">{{ m.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>
+                            {% if 'entrada' in m.movement_type or 'positivo' in m.movement_type %}
+                                <span class="badge badge-soft-success"><i class="bi bi-arrow-down-left"></i> {{ m.movement_type.replace('_', ' ').title() }}</span>
+                            {% else %}
+                                <span class="badge badge-soft-danger"><i class="bi bi-arrow-up-right"></i> {{ m.movement_type.replace('_', ' ').title() }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('products.detail', product_id=m.product.id) }}" class="fw-bold text-decoration-none text-dark">
+                                {{ m.product.name }}
+                            </a>
+                            <div class="small text-muted">SKU: {{ m.product.sku }}</div>
+                        </td>
+                        <td class="small">
+                            <span class="badge bg-light text-dark border">{{ m.reference_doc or '-' }}</span>
+                            {% if m.notes %}
+                            <div class="text-muted mt-1" style="font-size:11px;">{{ m.notes }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="text-center fw-bold {% if 'entrada' in m.movement_type or 'positivo' in m.movement_type %}text-success{% else %}text-danger{% endif %}">
+                            {{ '+' if 'entrada' in m.movement_type or 'positivo' in m.movement_type else '-' }}{{ m.quantity }}
+                        </td>
+                        <td class="text-center text-muted">{{ m.previous_stock }}</td>
+                        <td class="text-center fw-bold">{{ m.new_stock }}</td>
+                        <td class="text-end small">{{ m.unit_cost|currency }}</td>
+                        <td class="small text-muted">{{ m.created_by.username if m.created_by else 'Sistema' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Ajuste Manual de Inventario{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h4 class="fw-bold mb-0 text-slate-800">Ajuste Manual de Inventario</h4>
+                <p class="text-muted small mb-0">Corrección por conteo físico cíclico, mermas o sobrantes</p>
+            </div>
+            <a href="{{ url_for('movements.index') }}" class="btn btn-soft btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Ver Kárdex
+            </a>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="product_id" class="form-label">Seleccione el Repuesto <span class="text-danger">*</span></label>
+                        <select class="form-select" id="product_id" name="product_id" required>
+                            <option value="">Buscar repuesto...</option>
+                            {% for p in products %}
+                            <option value="{{ p.id }}">
+                                [{{ p.sku }}] {{ p.name }} — Stock Actual: {{ p.current_stock }} {{ p.unit_measure }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="adjust_type" class="form-label">Sentido del Ajuste <span class="text-danger">*</span></label>
+                            <select class="form-select" id="adjust_type" name="adjust_type" required>
+                                <option value="ajuste_positivo">Ajuste Positivo (+) Ingreso / Sobrante</option>
+                                <option value="ajuste_negativo">Ajuste Negativo (-) Merma / Pérdida / Daño</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="quantity" class="form-label">Cantidad a Ajustar <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="quantity" name="quantity" min="1" required placeholder="1">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="reference_doc" class="form-label">Acta / Documento de Soporte</label>
+                        <input type="text" class="form-control" id="reference_doc" name="reference_doc" placeholder="Ej: CONTEO-FISICO-OCT-2026">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="notes" class="form-label">Motivo o Justificación Obligatoria <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3" required placeholder="Detalle la causa del ajuste para auditoría..."></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <a href="{{ url_for('movements.index') }}" class="btn btn-soft">Cancelar</a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-check-lg me-1"></i> Aplicar Ajuste
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

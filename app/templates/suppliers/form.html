@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar Proveedor' if supplier else 'Nuevo Proveedor' }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h4 class="fw-bold mb-0 text-slate-800">{{ 'Editar Proveedor' if supplier else 'Registrar Nuevo Proveedor' }}</h4>
+                <p class="text-muted small mb-0">Información comercial y de contacto</p>
+            </div>
+            <a href="{{ url_for('suppliers.index') }}" class="btn btn-soft btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Volver a Proveedores
+            </a>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <form method="POST">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-5">
+                            <label for="nit_ruc" class="form-label">NIT o Identificación Tributaria <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="nit_ruc" name="nit_ruc" value="{{ supplier.nit_ruc if supplier else '' }}" {{ 'readonly' if supplier else 'required' }} placeholder="Ej: 900.876.543-1">
+                        </div>
+                        <div class="col-md-7">
+                            <label for="name" class="form-label">Razón Social / Nombre Comercial <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ supplier.name if supplier else '' }}" required placeholder="Ej: Distribuidora Nacional de Frenos S.A.S.">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="contact_name" class="form-label">Persona de Contacto</label>
+                            <input type="text" class="form-control" id="contact_name" name="contact_name" value="{{ supplier.contact_name if supplier and supplier.contact_name else '' }}" placeholder="Ej: Carlos Gómez">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="phone" class="form-label">Teléfono / WhatsApp</label>
+                            <input type="text" class="form-control" id="phone" name="phone" value="{{ supplier.phone if supplier and supplier.phone else '' }}" placeholder="Ej: +57 311 234 5678">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Correo Electrónico</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ supplier.email if supplier and supplier.email else '' }}" placeholder="ventas@proveedor.com">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="city" class="form-label">Ciudad</label>
+                            <input type="text" class="form-control" id="city" name="city" value="{{ supplier.city if supplier and supplier.city else '' }}" placeholder="Ej: Bogotá, Medellín, etc.">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="address" class="form-label">Dirección Física</label>
+                        <input type="text" class="form-control" id="address" name="address" value="{{ supplier.address if supplier and supplier.address else '' }}" placeholder="Calle / Carrera / Bodega">
+                    </div>
+
+                    {% if supplier %}
+                    <div class="mb-4 form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="active" name="active" value="1" {% if supplier.active %}checked{% endif %}>
+                        <label class="form-check-label fw-semibold" for="active">Proveedor Activo</label>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <a href="{{ url_for('suppliers.index') }}" class="btn btn-soft">Cancelar</a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-save me-1"></i> {{ 'Guardar Cambios' if supplier else 'Registrar Proveedor' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

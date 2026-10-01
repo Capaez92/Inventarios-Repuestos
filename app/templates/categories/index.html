@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}Categorías, Marcas y Ubicaciones{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0 text-slate-800">Clasificaciones & Ubicaciones</h4>
+        <p class="text-muted small mb-0">Gestión de familias de repuestos, marcas de fabricantes y organización física</p>
+    </div>
+</div>
+
+<ul class="nav nav-pills mb-4 gap-2" id="catalogTabs" role="tablist">
+    <li class="nav-item">
+        <button class="nav-link active fw-semibold" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories-pane">
+            <i class="bi bi-folder me-1"></i> Categorías ({{ categories|length }})
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link fw-semibold" id="brands-tab" data-bs-toggle="tab" data-bs-target="#brands-pane">
+            <i class="bi bi-patch-check me-1"></i> Marcas ({{ brands|length }})
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link fw-semibold" id="locations-tab" data-bs-toggle="tab" data-bs-target="#locations-pane">
+            <i class="bi bi-geo-alt me-1"></i> Ubicaciones Físicas ({{ locations|length }})
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <!-- PANE CATEGORIAS -->
+    <div class="tab-pane fade show active" id="categories-pane">
+        <div class="row g-4">
+            {% if current_user.can_manage_stock() %}
+            <div class="col-lg-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white py-3">
+                        <h6 class="mb-0 fw-semibold"><i class="bi bi-plus-circle me-2 text-primary"></i>Nueva Categoría</h6>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('categories.add_category') }}" method="POST">
+                            <div class="mb-3">
+                                <label class="form-label">Código Único <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control text-uppercase" name="code" required placeholder="Ej: MOT">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Nombre de Categoría <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="name" required placeholder="Ej: Motor y Componentes">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Descripción</label>
+                                <textarea class="form-control" name="description" rows="2" placeholder="Opcional..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Guardar Categoría</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            <div class="col-lg-{{ '8' if current_user.can_manage_stock() else '12' }}">
+                <div class="card shadow-sm">
+                    <div class="card-body p-0">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Categoría</th>
+                                    <th>Descripción</th>
+                                    <th class="text-center">Artículos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for c in categories %}
+                                <tr>
+                                    <td class="fw-bold text-primary">{{ c.code }}</td>
+                                    <td class="fw-semibold text-dark">{{ c.name }}</td>
+                                    <td class="small text-muted">{{ c.description or '-' }}</td>
+                                    <td class="text-center"><span class="badge bg-light text-dark border">{{ c.products|length }}</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANE MARCAS -->
+    <div class="tab-pane fade" id="brands-pane">
+        <div class="row g-4">
+            {% if current_user.can_manage_stock() %}
+            <div class="col-lg-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white py-3">
+                        <h6 class="mb-0 fw-semibold"><i class="bi bi-plus-circle me-2 text-primary"></i>Nueva Marca</h6>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('categories.add_brand') }}" method="POST">
+                            <div class="mb-3">
+                                <label class="form-label">Nombre de la Marca <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="name" required placeholder="Ej: Bosch, Denso, NGK...">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">País de Origen</label>
+                                <input type="text" class="form-control" name="country" placeholder="Ej: Alemania, Japón...">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Descripción</label>
+                                <textarea class="form-control" name="description" rows="2"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Guardar Marca</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            <div class="col-lg-{{ '8' if current_user.can_manage_stock() else '12' }}">
+                <div class="card shadow-sm">
+                    <div class="card-body p-0">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Marca</th>
+                                    <th>País</th>
+                                    <th>Descripción</th>
+                                    <th class="text-center">Repuestos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for b in brands %}
+                                <tr>
+                                    <td class="fw-bold text-dark">{{ b.name }}</td>
+                                    <td><span class="badge bg-light text-secondary border">{{ b.country or 'N/A' }}</span></td>
+                                    <td class="small text-muted">{{ b.description or '-' }}</td>
+                                    <td class="text-center"><span class="badge bg-light text-dark border">{{ b.products|length }}</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANE UBICACIONES -->
+    <div class="tab-pane fade" id="locations-pane">
+        <div class="row g-4">
+            {% if current_user.can_manage_stock() %}
+            <div class="col-lg-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white py-3">
+                        <h6 class="mb-0 fw-semibold"><i class="bi bi-plus-circle me-2 text-primary"></i>Nueva Ubicación</h6>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('categories.add_location') }}" method="POST">
+                            <div class="mb-3">
+                                <label class="form-label">Bodega / Zona <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="name" required placeholder="Ej: Bodega Principal">
+                            </div>
+                            <div class="row g-2 mb-3">
+                                <div class="col-4">
+                                    <label class="form-label small">Pasillo</label>
+                                    <input type="text" class="form-control form-control-sm" name="aisle" placeholder="A1">
+                                </div>
+                                <div class="col-4">
+                                    <label class="form-label small">Estante</label>
+                                    <input type="text" class="form-control form-control-sm" name="shelf" placeholder="03">
+                                </div>
+                                <div class="col-4">
+                                    <label class="form-label small">Gaveta</label>
+                                    <input type="text" class="form-control form-control-sm" name="bin" placeholder="B">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Notas Adicionales</label>
+                                <textarea class="form-control" name="description" rows="2"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Guardar Ubicación</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            <div class="col-lg-{{ '8' if current_user.can_manage_stock() else '12' }}">
+                <div class="card shadow-sm">
+                    <div class="card-body p-0">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Ubicación Completa</th>
+                                    <th>Bodega</th>
+                                    <th class="text-center">Pasillo</th>
+                                    <th class="text-center">Estante</th>
+                                    <th class="text-center">Gaveta</th>
+                                    <th class="text-center">Artículos</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for l in locations %}
+                                <tr>
+                                    <td class="fw-semibold text-primary">{{ l.full_location }}</td>
+                                    <td>{{ l.name }}</td>
+                                    <td class="text-center">{{ l.aisle or '-' }}</td>
+                                    <td class="text-center">{{ l.shelf or '-' }}</td>
+                                    <td class="text-center">{{ l.bin or '-' }}</td>
+                                    <td class="text-center"><span class="badge bg-light text-dark border">{{ l.products|length }}</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Catálogo de Repuestos{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h4 class="fw-bold mb-0 text-slate-800">Catálogo de Repuestos</h4>
+        <p class="text-muted small mb-0">Gestión de referencias, existencias y precios</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('reports.inventory_excel') }}" class="btn btn-outline-success btn-sm">
+            <i class="bi bi-file-earmark-excel me-1"></i> Excel
+        </a>
+        <a href="{{ url_for('reports.inventory_pdf') }}" target="_blank" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+        </a>
+        {% if current_user.can_manage_stock() %}
+        <a href="{{ url_for('products.create') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i> Nuevo Repuesto
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Filtros de Estado -->
+<div class="card mb-3 p-3">
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+        <span class="fw-semibold small text-muted me-2"><i class="bi bi-funnel me-1"></i>Filtro:</span>
+        <a href="{{ url_for('products.index') }}" class="btn btn-sm {% if current_filter == 'all' and not current_category %}btn-primary{% else %}btn-soft{% endif %}">
+            Todos
+        </a>
+        <a href="{{ url_for('products.index', filter='low') }}" class="btn btn-sm {% if current_filter == 'low' %}btn-warning text-dark{% else %}btn-soft{% endif %}">
+            <i class="bi bi-exclamation-triangle text-warning"></i> Bajo Mínimo
+        </a>
+        <a href="{{ url_for('products.index', filter='out') }}" class="btn btn-sm {% if current_filter == 'out' %}btn-danger{% else %}btn-soft{% endif %}">
+            <i class="bi bi-x-circle text-danger"></i> Agotados
+        </a>
+
+        <!-- Category Dropdown Filter -->
+        <div class="dropdown ms-auto">
+            <button class="btn btn-sm btn-soft dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-folder me-1"></i> Filtrar Categoría
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="max-height: 250px; overflow-y: auto;">
+                <li><a class="dropdown-item" href="{{ url_for('products.index') }}">Todas las categorías</a></li>
+                {% for c in categories %}
+                <li><a class="dropdown-item" href="{{ url_for('products.index', category_id=c.id) }}">{{ c.name }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Products Table -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive p-3">
+            <table class="table table-hover align-middle datatable w-100">
+                <thead>
+                    <tr>
+                        <th>Código/SKU</th>
+                        <th>Descripción</th>
+                        <th>Categoría</th>
+                        <th>Marca</th>
+                        <th>Ubicación</th>
+                        <th class="text-center">Stock</th>
+                        <th class="text-end">Costo Prom.</th>
+                        <th class="text-end">PVP Venta</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in products %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('products.detail', product_id=p.id) }}" class="fw-bold text-decoration-none text-primary">
+                                {{ p.sku }}
+                            </a>
+                            {% if p.barcode %}
+                            <div class="text-muted" style="font-size: 11px;"><i class="bi bi-upc me-1"></i>{{ p.barcode }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="fw-semibold text-dark">{{ p.name }}</div>
+                            {% if p.oem_reference %}
+                            <small class="text-muted">OEM: {{ p.oem_reference }}</small>
+                            {% endif %}
+                        </td>
+                        <td><span class="badge bg-light text-dark border">{{ p.category.name if p.category else 'N/A' }}</span></td>
+                        <td>{{ p.brand.name if p.brand else '-' }}</td>
+                        <td class="small text-muted">{{ p.location.full_location if p.location else 'Sin Asignar' }}</td>
+                        <td class="text-center">
+                            {% if p.current_stock <= 0 %}
+                                <span class="badge badge-soft-danger fw-bold">0 {{ p.unit_measure }}</span>
+                            {% elif p.current_stock <= p.min_stock %}
+                                <span class="badge badge-soft-warning fw-bold">{{ p.current_stock }} {{ p.unit_measure }}</span>
+                            {% else %}
+                                <span class="badge badge-soft-success fw-bold">{{ p.current_stock }} {{ p.unit_measure }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end text-muted small">{{ p.cost_price|currency }}</td>
+                        <td class="text-end fw-semibold text-dark">{{ p.sale_price|currency }}</td>
+                        <td class="text-center">
+                            {% if p.current_stock <= 0 %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Agotado</span>
+                            {% elif p.current_stock <= p.min_stock %}
+                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">Bajo Mínimo</span>
+                            {% else %}
+                                <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">Normal</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('products.detail', product_id=p.id) }}" class="btn btn-soft" title="Ficha y Kárdex">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% if current_user.can_manage_stock() %}
+                                <a href="{{ url_for('products.edit', product_id=p.id) }}" class="btn btn-soft" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

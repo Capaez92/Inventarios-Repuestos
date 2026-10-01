@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Registro de Auditoría{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0 text-slate-800">Registro de Auditoría y Seguridad</h4>
+        <p class="text-muted small mb-0">Trazabilidad de acciones de usuarios sobre el sistema</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive p-3">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Fecha / Hora</th>
+                        <th>Usuario</th>
+                        <th>Módulo</th>
+                        <th>Acción</th>
+                        <th>Detalles</th>
+                        <th>Dirección IP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs.items %}
+                    <tr>
+                        <td class="small text-muted">{{ log.created_at.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                        <td>
+                            <span class="fw-semibold text-dark">{{ log.user.username if log.user else 'Anónimo' }}</span>
+                        </td>
+                        <td><span class="badge bg-light text-dark border">{{ log.module }}</span></td>
+                        <td>
+                            {% if log.action in ['CREAR', 'ENTRADA', 'CREAR_USUARIO'] %}
+                                <span class="badge badge-soft-success">{{ log.action }}</span>
+                            {% elif log.action in ['ACTUALIZAR', 'APROBAR'] %}
+                                <span class="badge badge-soft-primary">{{ log.action }}</span>
+                            {% elif log.action in ['ELIMINAR', 'CANCELAR'] %}
+                                <span class="badge badge-soft-danger">{{ log.action }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary-subtle text-secondary">{{ log.action }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="small text-secondary">{{ log.details }}</td>
+                        <td class="small text-muted font-monospace">{{ log.ip_address or 'Local' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        {% if logs.pages > 1 %}
+        <div class="card-footer bg-white d-flex justify-content-between align-items-center py-2 px-3">
+            <span class="small text-muted">Página {{ logs.page }} de {{ logs.pages }}</span>
+            <div class="btn-group btn-group-sm">
+                {% if logs.has_prev %}
+                <a href="{{ url_for('settings.audit', page=logs.prev_num) }}" class="btn btn-soft">&laquo; Anterior</a>
+                {% endif %}
+                {% if logs.has_next %}
+                <a href="{{ url_for('settings.audit', page=logs.next_num) }}" class="btn btn-soft">Siguiente &raquo;</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

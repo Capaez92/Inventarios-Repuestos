@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} (SKU: {{ product.sku }}){% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('products.index') }}">Repuestos</a></li>
+                <li class="breadcrumb-item active">{{ product.sku }}</li>
+            </ol>
+        </nav>
+        <h4 class="fw-bold mb-0 text-slate-800">{{ product.name }}</h4>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('reports.kardex_excel', product_id=product.id) }}" class="btn btn-outline-success btn-sm">
+            <i class="bi bi-file-earmark-excel me-1"></i> Exportar Kárdex
+        </a>
+        {% if current_user.can_manage_stock() %}
+        <a href="{{ url_for('products.edit', product_id=product.id) }}" class="btn btn-soft btn-sm">
+            <i class="bi bi-pencil me-1"></i> Editar
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <!-- Ficha Técnica -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-info-circle me-2 text-primary"></i>Ficha de Producto</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between px-0">
+                        <span class="text-muted">Código SKU</span>
+                        <span class="fw-bold">{{ product.sku }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between px-0">
+                        <span class="text-muted">Código de Barras</span>
+                        <span>{{ product.barcode or 'Sin código' }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between px-0">
+                        <span class="text-muted">Ref. OEM</span>
+                        <span>{{ product.oem_reference or '-' }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between px-0">
+                        <span class="text-muted">Categoría</span>
+                        <span>{{ product.category.name if product.category else 'N/A' }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between px-0">
+                        <span class="text-muted">Marca / Fabricante</span>
+                        <span>{{ product.brand.name if product.brand else '-' }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between px-0">
+                        <span class="text-muted">Ubicación Física</span>
+                        <span class="fw-semibold text-primary">{{ product.location.full_location if product.location else 'Sin Asignar' }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between px-0">
+                        <span class="text-muted">Unidad de Medida</span>
+                        <span>{{ product.unit_measure }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between px-0">
+                        <span class="text-muted">Costo Promedio (CPP)</span>
+                        <span class="fw-semibold">{{ product.cost_price|currency }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between px-0">
+                        <span class="text-muted">Precio de Venta</span>
+                        <span class="fw-bold text-success">{{ product.sale_price|currency }}</span>
+                    </li>
+                </ul>
+
+                {% if product.description %}
+                <div class="mt-3 pt-2 border-top">
+                    <small class="text-muted fw-semibold d-block">Descripción / Notas:</small>
+                    <p class="small text-secondary mb-0 mt-1">{{ product.description }}</p>
+                </div>
+                {% endif %}
+
+                {% if current_user.can_manage_stock() and product.current_stock <= 0 %}
+                <div class="mt-4 pt-2">
+                    <form action="{{ url_for('products.delete', product_id=product.id) }}" method="POST" onsubmit="return confirm('¿Está seguro de eliminar esta referencia?');">
+                        <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                            <i class="bi bi-trash me-1"></i> Eliminar Referencia (Stock 0)
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Indicadores de Stock y Kárdex -->
+    <div class="col-lg-8">
+        <div class="row g-3 mb-3">
+            <div class="col-sm-4">
+                <div class="card p-3 text-center h-100">
+                    <span class="text-muted small text-uppercase fw-semibold">Stock Actual</span>
+                    <h2 class="fw-bold mt-1 mb-0 {% if product.is_out_of_stock %}text-danger{% elif product.is_low_stock %}text-warning{% else %}text-success{% endif %}">
+                        {{ product.current_stock }}
+                    </h2>
+                    <small class="text-muted">{{ product.unit_measure }}</small>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="card p-3 text-center h-100">
+                    <span class="text-muted small text-uppercase fw-semibold">Niveles de Control</span>
+                    <div class="d-flex justify-content-around mt-2">
+                        <div>
+                            <small class="text-muted d-block">Mínimo</small>
+                            <span class="fw-bold text-danger">{{ product.min_stock }}</span>
+                        </div>
+                        <div>
+                            <small class="text-muted d-block">Máximo</small>
+                            <span class="fw-bold text-primary">{{ product.max_stock }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="card p-3 text-center h-100">
+                    <span class="text-muted small text-uppercase fw-semibold">Valor Total Stock</span>
+                    <h3 class="fw-bold mt-1 mb-0 text-dark">{{ product.total_cost_value|currency }}</h3>
+                    <small class="text-muted">Valorizado al costo</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla Kárdex -->
+        <div class="card">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-journal-text me-2 text-primary"></i>Kárdex de Movimientos</h6>
+                <span class="badge bg-light text-muted border">{{ movements|length }} movimientos</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive p-3">
+                    <table class="table table-hover align-middle mb-0 datatable">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Tipo</th>
+                                <th>Referencia</th>
+                                <th class="text-center">Cant.</th>
+                                <th class="text-center">Saldo</th>
+                                <th class="text-end">Costo</th>
+                                <th>Usuario</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for m in movements %}
+                            <tr>
+                                <td class="small">{{ m.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>
+                                    {% if 'entrada' in m.movement_type or 'positivo' in m.movement_type %}
+                                        <span class="badge badge-soft-success"><i class="bi bi-arrow-down-left"></i> Entrada</span>
+                                    {% else %}
+                                        <span class="badge badge-soft-danger"><i class="bi bi-arrow-up-right"></i> Salida</span>
+                                    {% endif %}
+                                </td>
+                                <td class="small">
+                                    <div class="fw-medium">{{ m.reference_doc or '-' }}</div>
+                                    <small class="text-muted">{{ m.notes or '' }}</small>
+                                </td>
+                                <td class="text-center fw-bold {% if 'entrada' in m.movement_type or 'positivo' in m.movement_type %}text-success{% else %}text-danger{% endif %}">
+                                    {{ '+' if 'entrada' in m.movement_type or 'positivo' in m.movement_type else '-' }}{{ m.quantity }}
+                                </td>
+                                <td class="text-center fw-semibold">{{ m.new_stock }}</td>
+                                <td class="text-end small">{{ m.unit_cost|currency }}</td>
+                                <td class="small text-muted">{{ m.created_by.username if m.created_by else 'Sistema' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

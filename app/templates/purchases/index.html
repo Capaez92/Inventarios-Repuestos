@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Órdenes de Compra{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h4 class="fw-bold mb-0 text-slate-800">Órdenes de Compra</h4>
+        <p class="text-muted small mb-0">Gestión de abastecimiento con proveedores y recepción en bodega</p>
+    </div>
+    {% if current_user.can_manage_stock() %}
+    <a href="{{ url_for('purchases.create') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-cart-plus me-1"></i> Nueva Orden de Compra
+    </a>
+    {% endif %}
+</div>
+
+<!-- Filtros Estado -->
+<div class="card mb-3 p-3">
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+        <span class="small fw-semibold text-muted me-2"><i class="bi bi-funnel me-1"></i>Estado:</span>
+        <a href="{{ url_for('purchases.index') }}" class="btn btn-sm {% if not current_status %}btn-primary{% else %}btn-soft{% endif %}">Todas</a>
+        <a href="{{ url_for('purchases.index', status='borrador') }}" class="btn btn-sm {% if current_status == 'borrador' %}btn-secondary{% else %}btn-soft{% endif %}">Borradores</a>
+        <a href="{{ url_for('purchases.index', status='aprobada') }}" class="btn btn-sm {% if current_status == 'aprobada' %}btn-warning text-dark{% else %}btn-soft{% endif %}">Por Recibir</a>
+        <a href="{{ url_for('purchases.index', status='recibida') }}" class="btn btn-sm {% if current_status == 'recibida' %}btn-success{% else %}btn-soft{% endif %}">Recibidas</a>
+        <a href="{{ url_for('purchases.index', status='cancelada') }}" class="btn btn-sm {% if current_status == 'cancelada' %}btn-danger{% else %}btn-soft{% endif %}">Canceladas</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive p-3">
+            <table class="table table-hover align-middle datatable w-100">
+                <thead>
+                    <tr>
+                        <th>N° Orden</th>
+                        <th>Fecha</th>
+                        <th>Proveedor</th>
+                        <th>Creada Por</th>
+                        <th class="text-center">Ítems</th>
+                        <th class="text-end">Total ($)</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in orders %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('purchases.detail', order_id=o.id) }}" class="fw-bold text-decoration-none text-primary">
+                                {{ o.order_number }}
+                            </a>
+                        </td>
+                        <td class="small">{{ o.order_date.strftime('%d/%m/%Y') }}</td>
+                        <td>
+                            <div class="fw-medium text-dark">{{ o.supplier.name }}</div>
+                            <small class="text-muted">NIT: {{ o.supplier.nit_ruc }}</small>
+                        </td>
+                        <td class="small text-muted">{{ o.created_by.username if o.created_by else 'Admin' }}</td>
+                        <td class="text-center">{{ o.items|length }}</td>
+                        <td class="text-end fw-bold text-dark">{{ o.total_amount|currency }}</td>
+                        <td class="text-center">
+                            {% if o.status == 'borrador' %}
+                                <span class="badge bg-secondary">Borrador</span>
+                            {% elif o.status == 'aprobada' %}
+                                <span class="badge bg-warning text-dark">Aprobada (Pendiente)</span>
+                            {% elif o.status == 'recibida' %}
+                                <span class="badge bg-success">Recibida en Stock</span>
+                            {% elif o.status == 'cancelada' %}
+                                <span class="badge bg-danger">Cancelada</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ url_for('purchases.detail', order_id=o.id) }}" class="btn btn-sm btn-soft">
+                                <i class="bi bi-eye me-1"></i> Ver Detalle
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
