@@ -5,5 +5,9 @@ echo ========================================================
 echo   Iniciando AutoStock Pro - Almacen de Repuestos
 echo   Auto-recarga activada en cada modificacion de codigo
 echo ========================================================
-python run.py
+if exist ".venv\Scripts\python.exe" (
+    ".venv\Scripts\python.exe" run.py
+) else (
+    python run.py
+)
 pause
